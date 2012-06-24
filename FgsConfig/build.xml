@@ -14,6 +14,14 @@
 			depends="prep"
         	description="build the config">
 		
+        <ant target="configLocal">
+			<property name="configName" value="configDemoOnSolr"/>
+			<property name="indexEngine" value="Solr"/>
+			<property name="indexBase" value="${local.SOLR_SERVER}"/>
+			<property name="indexDir" location="${local.SOLR_HOME}/example/solr/data/index"/>
+			<property name="indexingDocXslt" value="foxmlToSolrGenerated"/>
+        </ant>
+		
         <ant target="configDemoSearchResultFiltering">
 			<property name="configName" value="configDemoSearchResultFiltering"/>
         </ant>
@@ -47,7 +55,7 @@
 			<property name="indexDir" location="${local.SOLR_HOME}/example/solr/data/index"/>
 			<property name="indexingDocXslt" value="foxmlToSolrGenerated"/>
         </ant>
-		<copy file="${plugin.dir}/configDemoOnSolr/index/FgsIndex/conf/schema-3.5.0-for-fgs-2.4.xml" 
+		<copy file="${plugin.dir}/configDemoOnSolr/index/FgsIndex/conf/schema-3.6.0-for-fgs-2.4.2.xml" 
 			tofile="${local.SOLR_HOME}/example/solr/conf/schema.xml" preservelastmodified="true" overwrite="true" />
 		
         <ant target="configLocal">
@@ -112,6 +120,15 @@
         <ant target="configDemoIndexPerDS_fgs24_1019">
 			<property name="configName" value="configDemoIndexPerDS_fgs24_1019"/>
         </ant>
+
+        <ant target="configLocal">
+			<property name="configName" value="configTestOnLuceneFgs242_1083"/>
+			<property name="indexEngine" value="Lucene"/>
+			<property name="indexDir" location="${local.FEDORA_HOME}/gsearch/FgsIndex"/>
+			<property name="indexingDocXslt" value="foxmlToLucene"/>
+        </ant>
+		<copy file="test_fgs242_1083/foxmlToLucene_1083.xslt" 
+			tofile="${plugin.dir}/configTestOnLuceneFgs242_1083/index/FgsIndex/foxmlToLucene_1083.xslt" preservelastmodified="true" overwrite="true"/>
 		
 	</target>
 

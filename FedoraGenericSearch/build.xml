@@ -23,7 +23,7 @@
 	<property name="local.PROTOCOL" 		   value="http" />
 	<property name="local.HOSTPORT" 		   value="localhost:8080" />
 	<property name="local.FEDORA_HOME" 		   location="/Users/gertschmeltzpedersen/f35" />
-	<property name="local.SOLR_HOME" 		   location="/Users/gertschmeltzpedersen/Downloads/apache-solr-3.5.0" />
+	<property name="local.SOLR_HOME" 		   location="/Users/gertschmeltzpedersen/Downloads/apache-solr-3.6.0" />
 	<property name="local.SOLR_SERVER" 		   value="http://localhost:8983/solr" />
 	<property name="local.ZEBRA_SERVER" 	   value="http://localhost:9999" />
 	
@@ -34,7 +34,7 @@
     <property name="javac.source"              value="1.5"/>
     <property name="javac.target"              value="1.5"/>
 
-    <property name="fedoragsearch.version" value="2.4.1"/>
+    <property name="fedoragsearch.version" value="2.4.2"/>
     <property name="fedora.version" value="3.5"/>
 
     <property name="source.dir" location="src/java"/>
@@ -311,6 +311,20 @@
 	
 	<target name="junit-set-lucene-fgs24_1009">
 		<property name="test" value="gsearch.test.lucene.fgs24_1009.AllTests"/>
+	</target>
+	
+	<target name="junit-fgs242_1076" depends="junit-set-fgs242_1076, junit">
+	</target>
+	
+	<target name="junit-set-fgs242_1076">
+		<property name="test" value="gsearch.test.fgs242_1076.AllTests"/>
+	</target>
+			
+	<target name="junit-fgs242_1083" depends="junit-set-fgs242_1083, junit">
+	</target>
+			
+	<target name="junit-set-fgs242_1083">
+		<property name="test" value="gsearch.test.fgs242_1083.AllTests"/>
 	</target>
 	
 	<target name="junit" depends="compile-junit">

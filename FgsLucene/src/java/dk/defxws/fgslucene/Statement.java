@@ -2,12 +2,11 @@
 /*
  * <p><b>License and Copyright: </b>The contents of this file is subject to the
  * same open source license as the Fedora Repository System at www.fedora-commons.org
- * Copyright &copy; 2006, 2007, 2008, 2009, 2010, 2011 by The Technical University of Denmark.
+ * Copyright &copy; 2006, 2007, 2008, 2009, 2010, 2011, 2012 by The Technical University of Denmark.
  * All rights reserved.</p>
  */
 package dk.defxws.fgslucene;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
@@ -23,7 +22,7 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
+import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryParser.MultiFieldQueryParser;
@@ -41,8 +40,7 @@ import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.Fragmenter;
 import org.apache.lucene.search.highlight.SimpleFragmenter;
 import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.SimpleFSDirectory;
+import org.apache.lucene.util.ReaderUtil;
 import org.apache.lucene.util.Version;
 
 import dk.defxws.fedoragsearch.server.errors.GenericSearchException;
@@ -61,6 +59,7 @@ public class Statement {
     private IndexSearcher searcher;
     
     public ResultSet executeQuery(
+    		IndexSearcher searcher,
             String queryString, 
             int startRecord, 
             int maxResults,
@@ -69,6 +68,7 @@ public class Statement {
             Analyzer analyzer, 
             String defaultQueryFields, 
             boolean allowLeadingWildcard, 
+            boolean lowercaseExpandedTerms,
             String indexPath, 
             String indexName, 
             String snippetBegin,
@@ -85,7 +85,9 @@ public class Statement {
                     " indexName="+indexName+
                     " sortFields="+sortFields+
                     " defaultQueryFields="+defaultQueryFields+
-                    " allowLeadingWildcard="+allowLeadingWildcard);
+                    " allowLeadingWildcard="+allowLeadingWildcard+
+                    " lowercaseExpandedTerms="+lowercaseExpandedTerms);
+        this.searcher = searcher;
     	ResultSet rs = null;
     	StringTokenizer defaultFieldNames = new StringTokenizer(defaultQueryFields);
     	int countFields = defaultFieldNames.countTokens();
@@ -95,11 +97,13 @@ public class Statement {
     	}
     	Query query = null;
     	if (defaultFields.length == 1) {
-    		QueryParser queryParser = new QueryParser(Version.LUCENE_35, defaultFields[0], analyzer);
+    		QueryParser queryParser = new QueryParser(Version.LUCENE_36, defaultFields[0], analyzer);
     		queryParser.setAllowLeadingWildcard(allowLeadingWildcard);
+    		queryParser.setLowercaseExpandedTerms(lowercaseExpandedTerms);
             if (logger.isDebugEnabled())
                 logger.debug("executeQuery queryParser" +
-                        " allowLeadingWildcard="+queryParser.getAllowLeadingWildcard());
+                        " allowLeadingWildcard="+queryParser.getAllowLeadingWildcard() +
+                        " lowercaseExpandedTerms="+queryParser.getLowercaseExpandedTerms());
     		try {
     			query = queryParser.parse(queryString);
     		} catch (ParseException e) {
@@ -107,40 +111,28 @@ public class Statement {
     		}
     	}
     	else {
-    		MultiFieldQueryParser queryParser = new MultiFieldQueryParser(Version.LUCENE_35, defaultFields, analyzer);
+    		MultiFieldQueryParser queryParser = new MultiFieldQueryParser(Version.LUCENE_36, defaultFields, analyzer);
     		queryParser.setAllowLeadingWildcard(allowLeadingWildcard);
+    		queryParser.setLowercaseExpandedTerms(lowercaseExpandedTerms);
             if (logger.isDebugEnabled())
                 logger.debug("executeQuery mfqueryParser" +
-                        " allowLeadingWildcard="+queryParser.getAllowLeadingWildcard());
+                        " allowLeadingWildcard="+queryParser.getAllowLeadingWildcard() +
+                        " lowercaseExpandedTerms="+queryParser.getLowercaseExpandedTerms());
     		try {
     			query = queryParser.parse(queryString);
     		} catch (ParseException e) {
     			throw new GenericSearchException(e.toString());
     		}
     	}
-    	IndexReader ir = null;
+        if (logger.isDebugEnabled())
+        	logger.debug("executeQuery after parse query="+query);
     	try {
-			Directory dir = new SimpleFSDirectory(new File(indexPath));
-    		ir = IndexReader.open(dir, true);
-    		query.rewrite(ir);
-    	} catch (CorruptIndexException e) {
-    		if (ir!=null) {
-        		try {
-    				ir.close();
-    			} catch (IOException e1) {
-    			}
-    		}
-    		throw new GenericSearchException(e.toString());
-    	} catch (IOException e) {
-    		if (ir!=null) {
-        		try {
-    				ir.close();
-    			} catch (IOException e2) {
-    			}
-    		}
+    		query.rewrite(searcher.getIndexReader());
+    	} catch (Exception e) {
     		throw new GenericSearchException(e.toString());
     	}
-    	searcher = new IndexSearcher(ir);
+        if (logger.isDebugEnabled())
+        	logger.debug("executeQuery after rewrite query="+query);
     	int start = Integer.parseInt(Integer.toString(startRecord));
     	TopDocs hits = getHits(query, start+maxResults-1, sortFields);
     	ScoreDoc[] docs = hits.scoreDocs;
@@ -179,7 +171,7 @@ public class Statement {
     		}
     		resultXml.append("<hit no=\""+i+ "\" score=\""+hitsScore+"\">");
     		for (ListIterator li = doc.getFields().listIterator(); li.hasNext(); ) {
-    			Field f = (Field)li.next();
+    			Fieldable f = (Fieldable)li.next();
     			resultXml.append("<field name=\""+f.name()+"\"");
     			String snippets = null;
     			if (snippetsMax > 0) {
@@ -226,24 +218,6 @@ public class Statement {
         	logger.debug("executeQuery resultXml="+debugString);
         }
     	rs = new ResultSet(resultXml);
-    	if (searcher!=null) {
-    		try {
-    			searcher.close();
-    			searcher = null;
-    		} catch (IOException e) {
-    		}
-    	}
-        if (logger.isDebugEnabled()) 
-        	logger.debug("executeQuery searcher="+searcher);
-		if (ir!=null) {
-    		try {
-				ir.close();
-				ir = null;
-			} catch (IOException e) {
-			}
-		}
-        if (logger.isDebugEnabled()) 
-        	logger.debug("executeQuery ir="+ir);
     	return rs;
     }
 
@@ -272,7 +246,7 @@ public class Statement {
                     " sortFields="+sortFields);
     	TopDocs hits = null;
     	IndexReader ireader = searcher.getIndexReader();
-    	Collection fieldNames = ireader.getFieldNames(IndexReader.FieldOption.ALL);
+    	Collection<String> fieldNames = ReaderUtil.getIndexedFields(ireader);
     	String sortFieldsString = sortFields;
     	if (sortFields == null) sortFieldsString = "";
     	StringTokenizer st = new StringTokenizer(sortFieldsString, ";");
