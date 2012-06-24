@@ -892,7 +892,7 @@ public class Config {
         return repositoryName;
     }
     
-    private Properties getRepositoryProps(String repositoryName) {
+    public Properties getRepositoryProps(String repositoryName) {
         return (repositoryNameToProps.get(repositoryName));
     }
     
