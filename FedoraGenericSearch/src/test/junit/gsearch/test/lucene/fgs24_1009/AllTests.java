@@ -17,7 +17,7 @@ import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses( {
-	gsearch.test.lucene.fgs24_1009.TestConfigOnLuceneFgs24_1009.class
+	//gsearch.test.lucene.fgs24_1009.TestConfigOnLuceneFgs24_1009.class
 	} )
 public class AllTests {
 
@@ -25,7 +25,7 @@ public class AllTests {
     public static junit.framework.Test suite() throws Exception {
         junit.framework.TestSuite suite =
                 new junit.framework.TestSuite(AllTests.class.getName());
-        suite.addTest(gsearch.test.lucene.fgs24_1009.TestConfigOnLuceneFgs24_1009.suite());
+        //suite.addTest(gsearch.test.lucene.fgs24_1009.TestConfigOnLuceneFgs24_1009.suite());
         return suite;
     }
 }
