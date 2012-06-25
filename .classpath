@@ -58,5 +58,6 @@
 	<classpathentry kind="lib" path="FedoraGenericSearch/lib/lucene-memory-3.6.0.jar"/>
 	<classpathentry kind="lib" path="FedoraGenericSearch/lib/tika-app-1.1.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/java-6-openjdk-amd64"/>
+	<classpathentry kind="lib" path="/home/hudakr4/tmp/gsearch/WEB-INF/lib/carol-2.0.5.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
