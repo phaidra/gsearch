@@ -46,8 +46,6 @@ public class PhaidraOperationsImpl extends OperationsImpl {
              logger.debug("_getFoxmlFromPid" +
                      " pid="+pid +
                      " repositoryName="+repositoryName);
-         
-         String RESOURCE = (config.getRepositoryProps(repositoryName)).getProperty("fgsrepository.fedoraResource");
         
          Connection conn = null;
  		PreparedStatement pstmt = null;
@@ -57,8 +55,9 @@ public class PhaidraOperationsImpl extends OperationsImpl {
  		{
  			// get DB connection from pool
  			Context initContext = new InitialContext();
- 			Context envContext  = (Context)initContext.lookup("java:/comp/env");
- 			DataSource ds = (DataSource)envContext.lookup(RESOURCE);
+ 			Context envContext  = (Context)initContext.lookup("java:/comp/env"); 			 			
+ 			
+ 			DataSource ds = (DataSource)envContext.lookup("jdbc/fedora");
  			conn = ds.getConnection();
  			
  			// It is simple as that!
@@ -208,10 +207,7 @@ public class PhaidraOperationsImpl extends OperationsImpl {
 	        	throw new GenericSearchException("Error during XPath query: "+ex.toString());
 	        }
 	        
-	        logger.debug("After XPath query: PID = "+pid+", dsId = "+dsId+", mimetype = "+mimetype+", token = "+token);
-	        
-	        // Pfad des Datastreams aus der DB lesen
-	        String RESOURCE = (config.getRepositoryProps(repositoryName)).getProperty("fgsrepository.fedoraResource");
+	        logger.debug("After XPath query: PID = "+pid+", dsId = "+dsId+", mimetype = "+mimetype+", token = "+token);	      
 	        
 	        Connection conn = null;
 			PreparedStatement pstmt = null;
@@ -222,7 +218,7 @@ public class PhaidraOperationsImpl extends OperationsImpl {
 				// get DB connection from pool
 				Context initContext = new InitialContext();
 				Context envContext  = (Context)initContext.lookup("java:/comp/env");
-				DataSource dso = (DataSource)envContext.lookup(RESOURCE);
+				DataSource dso = (DataSource)envContext.lookup("jdbc/fedora");
 				conn = dso.getConnection();
 				
 				// It is simple as that!
