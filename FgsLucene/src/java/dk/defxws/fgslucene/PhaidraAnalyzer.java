@@ -27,6 +27,7 @@ import org.apache.lucene.util.Version;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Arrays;
 import java.util.Set;
 
 /**
@@ -121,6 +122,8 @@ public final class PhaidraAnalyzer extends StopwordAnalyzerBase {
   public int getMaxTokenLength() {
     return maxTokenLength;
   }
+  
+  private static final CharArraySet DEFAULT_ARTICLES = CharArraySet.unmodifiableSet(new CharArraySet(Version.LUCENE_33,Arrays.asList("c", "l", "all", "dall", "dell", "nell", "sull", "coll", "pell","gl", "agl", "dagl", "degl", "negl", "sugl", "un", "m", "t", "s", "v", "d"), true));
 
   @Override
   protected TokenStreamComponents createComponents(final String fieldName, final Reader reader) {
@@ -128,7 +131,7 @@ public final class PhaidraAnalyzer extends StopwordAnalyzerBase {
     src.setMaxTokenLength(maxTokenLength);    
     TokenStream tok = new StandardFilter(matchVersion, src);
     // unipd adding ElisionFilter for apostrophes
-    tok = new ElisionFilter(matchVersion, tok);
+    tok = new ElisionFilter(matchVersion, tok, DEFAULT_ARTICLES);
     tok = new LowerCaseFilter(matchVersion, tok);
     tok = new StopFilter(matchVersion, tok, stopwords);
     // rasta: adding ASCIIFoldingFilter to enable search for accent 
