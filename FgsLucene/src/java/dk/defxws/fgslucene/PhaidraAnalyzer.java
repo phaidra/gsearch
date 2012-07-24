@@ -18,6 +18,7 @@ package dk.defxws.fgslucene;
  */
 
 import org.apache.lucene.analysis.*;
+import org.apache.lucene.analysis.fr.ElisionFilter;
 import org.apache.lucene.analysis.standard.StandardFilter;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
 import org.apache.lucene.util.IOUtils;
@@ -126,6 +127,8 @@ public final class PhaidraAnalyzer extends StopwordAnalyzerBase {
     final StandardTokenizer src = new StandardTokenizer(matchVersion, reader);
     src.setMaxTokenLength(maxTokenLength);    
     TokenStream tok = new StandardFilter(matchVersion, src);
+    // unipd adding ElisionFilter for apostrophes
+    tok = new ElisionFilter(matchVersion, tok);
     tok = new LowerCaseFilter(matchVersion, tok);
     tok = new StopFilter(matchVersion, tok, stopwords);
     // rasta: adding ASCIIFoldingFilter to enable search for accent 
